@@ -18,7 +18,10 @@ GLIBS		= $(ROOTGLIBS)
 
 ########################################
 
-all: bin/clustering 
+all: directories bin/clustering 
+
+directories: 
+	mkdir bin lib
 
 lib/clustering.so: src/clustering.cc
 	$(CC) $(CCFLAGS) -c src/clustering.cc -o lib/clustering.so
