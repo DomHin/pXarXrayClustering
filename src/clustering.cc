@@ -70,9 +70,25 @@ int main(int argc, char *argv[]){
 
   TFile *fFile = new TFile(filename.c_str(), "READ");
 
+  if (!fFile->IsOpen()){
+    return 0;
+  }
+
   // Get tree and set branch
 
+  /*
+  if (!fFile->GetListOfKeys()->Contains("Xray/events")){
+    cout << "\nCannot find TTree! Did you enable the FillTree option for the Xray test? Do you have to change the target (default: Sr90)? \n" << endl;
+    return 0;
+  }
+  */
   TTree *fTree = (TTree*)fFile->Get("Xray/events");
+  
+  if(!fTree){
+    cout << "\nERROR: Cannot find TTree! Did you enable the FillTree option for the Xray test?\n" << endl;
+    return 0;
+  }
+
   TreeEvent fTreeEvent;
 
   fTree->SetBranchAddress("header",  &fTreeEvent.header);
@@ -100,6 +116,8 @@ int main(int argc, char *argv[]){
 
   for(int iRoc=0; iRoc<nRoc; iRoc++){
 
+    // Get the default histogram
+
     /* c++11
     string xrayString = "Xray/q_" + target + "_C" + to_string(iRoc) + "_V0";
     TH1D *fOrigHisto = (TH1D*)fFile->Get(xrayString.c_str());
@@ -110,9 +128,11 @@ int main(int argc, char *argv[]){
     sprintf(xrayString,"Xray/q_%s_C%i_V0",target.c_str(),iRoc);
     TH1D *fOrigHisto = (TH1D*)fFile->Get(xrayString);
         
-    // Get the default histogram
-
-    fOrigHisto->GetXaxis()->SetRangeUser(0,2000);
+    if(!fOrigHisto){
+      cout << "\nWARNING: Cannot find default histogram. Did you set the target accordingly (default: Sr90)?\nWARNING: Create output file without default histogram!\n" << endl;
+    }else{
+      fOrigHisto->GetXaxis()->SetRangeUser(0,2000);
+    }
 
     // Create histograms
 
@@ -182,7 +202,9 @@ int main(int argc, char *argv[]){
    
     printResults(iRoc,n0,n1,n2,n3);
     
-    fOrigHisto->Write();
+    if(fOrigHisto){
+      fOrigHisto->Write();
+    }
     fResultHisto1p->Write();
     fResultHisto2p->Write();    
     fResultHisto->Write();
